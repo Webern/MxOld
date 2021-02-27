@@ -1,0 +1,31 @@
+name: Xcode CI
+
+on: [pull_request]
+
+jobs:
+  xcode:
+    name: Xcode
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Xcode Build Cache
+      uses: actions/cache@v2
+      env:
+        cache-name: xcode-cache
+      with:
+        path: ./xcode-build
+        key: ${{ hashFiles('.github/cache-bust') }}-${{ hashFiles('Xcode/mx.xcworkspace', 'Xcode/Mx.xcodeproj', 'Xcode/MxTest.xcodeproj') }}-${{ hashFiles('Sourcecode/*') }}
+        restore-keys: |
+          ${{ hashFiles('.github/cache-bust') }}-${{ hashFiles('Xcode/mx.xcworkspace', 'Xcode/Mx.xcodeproj', 'Xcode/MxTest.xcodeproj') }}-
+          ${{ hashFiles('.github/cache-bust') }}-
+
+    - name: Build
+      run: |
+          DevScripts/build-for-apple.sh \
+          --outdir ./xcode-out \
+          --build-dir ./xcode-build \
+          --test false \
+          --configuration Release \
+          --cleanup false
